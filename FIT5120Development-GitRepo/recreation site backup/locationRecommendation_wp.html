@@ -1,0 +1,221 @@
+<html>
+<head>
+    <meta name="viewport" />
+    <style type="text/css">
+        #googft-mapCanvas {
+            height: 500px;
+            margin: 0;
+            padding: 0;
+            width: 400px;
+        }
+
+        #googft-mapCanvas {
+            height: 500px;
+            width: 700px;
+            float: left;
+
+        }
+
+        #contentDetials {
+            width: 300px;
+            height: 500px;
+            float: left;
+            margin-left: 20px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3&amp;libraries=visualization&amp;key=AIzaSyB4vhZzjKFielQWyeNeTOld0szKsSwsQU0&libraries=places&amp;unused-google-fusiontables"></script>
+
+
+
+
+    <script type="text/javascript">
+        var map
+        var dis = 0.5;
+        var locations = [];
+        var InforObj = [];
+        var localName = "";
+        var localComment = "";
+        var placeID = "";
+
+        function getLocation() {
+            navigator.geolocation.getCurrentPosition(initialize);
+        }
+
+        function initialize(position) {
+            var clat = parseFloat(position.coords.latitude);
+            var clon = parseFloat(position.coords.longitude);
+            var minclat = clat - dis;
+            var maxclat = clat + dis;
+            var minclon = clon - dis;
+            var maxclon = clon + dis;
+            $.post('/wp-admin/admin-ajax.php', {
+                "action": 'my_action',
+                "clat1": minclat,
+                "clat2": maxclat,
+                "clon1": minclon,
+                "clon2": maxclon
+            }, function(response) {
+                //return the json format.
+                locations = response;
+                addMarkerInfo();
+            });
+
+            var mapDiv = document.getElementById('googft-mapCanvas');
+            map = new google.maps.Map(mapDiv, {
+                center: new google.maps.LatLng(clat, clon),
+                zoom: 7,
+                // mapTypeId: google.maps.MapTypeId['ROADMAP'],
+                panControl: false,
+                zoomControl: false,
+                scaleControl: true,
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+            //add fusiontable layer
+            layer = new google.maps.FusionTablesLayer({
+                map: map,
+                heatmap: {
+                    enabled: false
+                },
+                query: {
+                    select: "col12",
+                    from: "11RmOfqswC5YS9lJ_HcMA1Vi3f0TPGy48skybaC65",
+                    where: ""
+                },
+                options: {
+                    styleId: 2,
+                    templateId: 2
+                }
+            });
+            //the flag logo
+            var image = {
+                url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+                // This marker is 20 pixels wide by 32 pixels high.
+                size: new google.maps.Size(100, 50),
+                // The origin for this image is (0, 0).
+                origin: new google.maps.Point(0, 0),
+                // The anchor for this image is the base of the flagpole at (0, 32).
+                anchor: new google.maps.Point(0, 32)
+            };
+
+            var marker = new google.maps.Marker({
+                position: {
+                    lat: clat,
+                    lng: clon
+                },
+                map: map,
+                title: 'Your current location',
+                icon: image
+            });
+        }
+
+        function showDetials() {
+            document.getElementById("NameOfLocation").innerHTML = "";
+            document.getElementById("address").innerHTML = "";
+            document.getElementById("photos").src = "";
+            document.getElementById("discriptions").innerHTML = "";
+            localName = document.getElementById("cName").innerHTML;
+            localComment = document.getElementById("cComment").innerHTML;
+            var request = {
+                query: localName,
+                fields: ['name', 'photos', 'formatted_address', 'place_id'],
+            };
+            var service = new google.maps.places.PlacesService(map);
+            service.findPlaceFromQuery(request, function(results, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    if (results.length != 0) {
+                        placeID = results[0].place_id;
+
+                        var requestDetail = {
+                            placeId: placeID,
+                            fields: ['formatted_address', 'permanently_closed', 'photo', 'icon']
+                        };
+
+                        var detialService = new google.maps.places.PlacesService(map);
+                        detialService.getDetails(requestDetail, callback);
+
+                        function callback(place, status) {
+                            if (status == google.maps.places.PlacesServiceStatus.OK) {
+                                document.getElementById("NameOfLocation").innerHTML = localName;
+                                document.getElementById("address").innerHTML = place.formatted_address;
+                                document.getElementById("discriptions").innerHTML = localComment;
+                                if (typeof(place.photos) != "undefined") {
+                                    document.getElementById("photos").src = place.photos[0].getUrl({
+                                        maxWidth: 350,
+                                        maxHeight: 350
+                                    })
+                                }
+                            }
+                        };
+                    } else {
+                        document.getElementById("NameOfLocation").innerHTML = localName;
+                        document.getElementById("discriptions").innerHTML = localComment;
+                    }
+                } else {
+                    document.getElementById("NameOfLocation").innerHTML = localName;
+                    document.getElementById("discriptions").innerHTML = localComment;
+                }
+            });
+
+
+        }
+
+        function addMarkerInfo() {
+            for (var i = 0; i < locations.length; i++) {
+                var contentString = '<div id="content">' + '<h4 id="cName">' + locations[i]["site_name"] + '</h4></br><p id="cComment">' + locations[i].access_dsc + '</p></br><input id="clickMe" type="button" value="Learn more" onclick="showDetials()"/></div>';
+
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(locations[i].latitude),
+                        lng: parseFloat(locations[i].longitude)
+                    },
+                    map: map
+                });
+                const infowindow = new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 200
+                });
+                marker.addListener('click', function() {
+                    closeOtherInfo();
+                    infowindow.open(marker.get('map'), marker);
+                    InforObj[0] = infowindow;
+                });
+            }
+            locations = [];
+        }
+
+        function closeOtherInfo() {
+            if (InforObj.length > 0) {
+                InforObj[0].set("marker", null);
+                InforObj[0].close();
+                InforObj.length = 0;
+            }
+        }
+
+        google.maps.event.addDomListener(window, 'load', getLocation);
+    </script>
+</head>
+
+<body>
+    <div id="googft-mapCanvas">
+        <div class="d-flex justify-content-center">
+            <div id="columnV">
+                <button id="loadingButton" class="btn btn-primary" type="button" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only"></span>
+                    Loading...
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="contentDetials">
+        <h4 id="NameOfLocation"></h4>
+        <h5 id="address"></h5>
+        <img id="photos">
+        <p id="discriptions"></p>
+    </div>
+</body></html>

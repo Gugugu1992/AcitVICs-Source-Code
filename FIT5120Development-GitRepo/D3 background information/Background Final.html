@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simple Map</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integr ity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetice Neue', Helvetica, Arial, sans-serif;
+        }
+
+        #chartStory{
+            width: 350px;
+            margin-top: 70px;
+            margin-left: 80px;
+            background-color:rgb(255,255,250);
+            opacity:0.8;
+        }
+        #lineChartStory{
+            width: 350px;
+            margin-top: 30px;
+            margin-left: 80px;
+            background-color:rgb(255,255,250);
+            opacity:0.8;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #first_row {
+            width: 100;
+            height: auto;
+            margin: 10px;
+            padding: 10px 20px;
+
+        }
+        #title{
+            background-color:#66CC66;
+            color:white;
+            padding:10px;
+            width: 400px;
+            text-align: center;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        #console {
+            opacity: 1;
+        }
+
+        #source1{
+            color:white;
+            font-weight: bold;
+            background-color:#999c9f;
+            width: 250px;
+            text-align: center;
+            border-radius: 10px;
+        }
+        #selectArea {
+            padding: 10px 20px;
+            background-color:#3366CC;
+            color:white;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+</head>
+
+<body>
+    <div id="graph">
+        <div id="first_row" class="row">
+            <div id='console' class="col-md-12">
+                <h4 id ='title'>Victorian Eye Health Information</h3>
+                <p id ="source1">Data: <a href='http://www.abs.gov.au/AUSSTATS/abs@.nsf/DetailsPage/4364.0.55.0012014-15?OpenDocument'>National Health report 2014</a></p>
+            </div>
+            <div id="selectItem" class="col-md-12">
+                    <select id='selectArea' onchange="initial(this)">
+                        <option value="-25.3,133.8,5">Australia</option>
+                        <option value="-37.47,144.78,7">Victoria</option>
+                    </select>
+            </div>  
+        </div>
+        <div id="second_row" class="row">
+            <div id="chart" class="col-md-6 col-sm-12">
+            </div>
+
+             <div id="lineChart" class="col-md-6 col-sm-12">
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="typev" value="$!{list.selectArea}" />
+
+    <script>
+        function initial(){
+             updateLineChart();
+            updateHeatMap();
+            var paramArray = document.getElementById('selectArea').value.split(",");
+            var la = parseFloat(paramArray[0])
+            var lon = parseFloat(paramArray[1])
+            var z = parseInt(paramArray[2])
+            }
+       
+           
+        //set the dimensions and margins of the graph
+        var margin = {
+                top: 20,
+                right: 20,
+                bottom: 100,
+                left: 200
+            },
+            marginL = {
+                top: 30,
+                right: 20,
+                bottom: 100,
+                left: 130
+            },
+            widthL = 650 - margin.left - margin.right,
+            heightL = 430 - margin.top - margin.bottom,
+            width = 650 - margin.left - margin.right,
+            height = 450 - margin.top - margin.bottom;
+
+        //append the svg object to the body of the heatmap chart  
+        var svg = d3.select("#chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        //append the svgL object to the body of the line chart 
+        var svgL = d3.select("#lineChart").append("svg")
+            .attr("width", widthL + marginL.left + marginL.right)
+            .attr("height", heightL + marginL.top + marginL.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + marginL.left + "," + marginL.top + ")");
+        // Add title to graph
+        var tits = svg.append("text")
+            .attr("x", (width / 2 - 50))
+            .attr("y", 20)
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px");
+        // line chart title
+        var titsL = svgL.append("text")
+            .attr("x", (width / 2 - 50))
+            .attr("y", 5)
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px");
+
+        //append the group and intialized the x and y scale for heatmap chart
+        var xAxisGroup = svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")");
+
+        var yAxisGroup = svg.append("g")
+            .attr("class", "y axis");
+
+        var x = d3.scaleBand()
+            .range([0, width - 110])
+            .padding(0.2);
+
+        var y = d3.scaleBand()
+            .range([height, 40])
+            .padding(0.2);
+
+        //x, y for line chart
+        var xL = d3.scaleBand()
+            .range([0, widthL - 120])
+            .padding(1);
+
+        var xAxisLG = svgL.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + heightL + ")");
+
+        var yL = d3.scaleLinear()
+            .range([heightL, 40]);
+
+        var yAxisLG = svgL.append("g")
+            .attr("class", "y axis");
+
+        //build color scale for linechart:
+        var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        // Build color scale for heatmap
+        var myColor = d3.scaleSequential()
+            .interpolator(d3.interpolateRdYlGn)
+            .domain([30, 0]);
+
+        //Add the legend to the linechart:
+        var continents = ["Long Sightedness", "Short Sightedness", "High/Very High Psychological Distress", "Inadequate Fruit/Vegetable Consumption", "No/Low Exercise Level"]
+
+        continents.forEach(function(d, i) {
+            var legend = svgL.append("g")
+                .attr("class", "legend")
+                .attr("x", width - 130)
+                .attr("y", i * 15 + 15)
+                .attr("height", 150)
+                .attr("width", 100);
+            legend.append("rect")
+                .attr("x", width - 145)
+                .attr("y", i * 15 + 30)
+                .attr("height", 10)
+                .attr("width", 10)
+                .style("fill", color(i));
+            legend.append("text")
+                .attr("x", width - 130)
+                .attr("y", i * 15 + 40)
+                .style("font-size", 8)
+                .text(d);
+
+        })
+        // add the color label to indicate the means of color
+        var colorContinents = ["Low percent", "High percent"]
+
+        colorContinents.forEach(function(d,i){
+            var legendHeat = svg.append("g")
+                .attr("class", "legend")
+                .attr("x", width - 100)
+                .attr("y", i * 15 + 15)
+                .attr("height", 150)
+                .attr("width", 100);
+            legendHeat.append("circle")
+                .attr("cx", width - 100)
+                .attr("cy", i * 15 + 47)
+                .attr("r", 5)
+                .style("fill", myColor(i*50));
+            legendHeat.append("text")
+                .attr("x", width - 80)
+                .attr("y", i * 15 + 50)
+                .style("font-size", 9)
+                .text(colorContinents[i]);        
+        })
+        initial();
+        //line chart function:
+        function updateLineChart(data) {
+            //delete the old diagram 
+            svgL.selectAll("path").remove();
+            var parse = d3.timeParse("%Y");
+            var format = d3.timeFormat("%Y");
+            var paramArray = document.getElementById('selectArea').value.split(",");
+            var zoomValue = parseInt(paramArray[2])
+            //edit the address of the data
+            if (zoomValue == 5) {
+                var dataAddress1 = "https://www.activics.cf/wp-content/uploads/2019/04/lifesytle-risk-factors_AUS_M.csv";
+                var titleValuesL = "AUS risk factors with eye disease";
+            } else {
+                var dataAddress1 = "https://www.activics.cf/wp-content/uploads/2019/04/Lifestyle-risk-factors_VIC_M.csv";
+                var titleValuesL = "VIC risk factors with eye disease";
+            }
+
+            d3.csv(dataAddress1, function(error, data) {
+                if (error) throw error;
+                var myYear = d3.map(data, function(d) {
+                    return parseInt(d.Year);
+                }).keys();
+                var myPeople = d3.map(data, function(d) {
+                    return d.People;
+                }).keys();
+                var valueMax = 0;
+
+                for (var i = 0; i < myPeople.length; i++) {
+                    //cover to string to float
+                    var currValue = parseFloat(myPeople[i]);
+                    if (currValue > valueMax)
+                        valueMax = currValue;
+                }
+
+                for (var i = 0; i < myYear.length; i++) {
+                    myYear[i] = parse(myYear[i]);
+                }
+
+
+                //                create a tooltip:
+
+                // restructure dataset:
+                var lDataList = [];
+                var sDataList = [];
+                var hDataList = [];
+                var iDataList = [];
+                var oDataList = [];
+                d3.map(data, function(d) {
+                    var valueKey = d.Conditions_and_lifestyle_risk;
+                    var valueP = parseFloat(d.People);
+                    var valueY = parse(d.Year);
+                    if (valueKey == "Long sightedness")
+                        lDataList.push([valueY, valueP]);
+                    if (valueKey == "Short sightedness")
+                        sDataList.push([valueY, valueP]);
+                    if (valueKey == "High/Very high psychological distress")
+                        hDataList.push([valueY, valueP]);
+                    if (valueKey == "Inadequate fruit or vegetable consumption")
+                        iDataList.push([valueY, valueP]);
+                    if (valueKey == "No/Low exercise level")
+                        oDataList.push([valueY, valueP]);
+                })
+                var dataset = [{
+                    "Conditions": "Long sightedness",
+                    "Value": lDataList
+                }, {
+                    "Conditions": "Short sightedness",
+                    "Value": sDataList
+                }, {
+                    "Conditions": "High/Very high psychological distress",
+                    "Value": hDataList
+                }, {
+                    "Conditions": "Inadequate fruit or vegetable consumption",
+                    "Value": iDataList
+                }, {
+                    "Conditions": "No/Low exercise level",
+                    "Value": oDataList
+                }];
+                //                console.log(dataset);
+
+                // create a tooltip
+                var tooltip = d3.select("#lineChart")
+                    .append("div")
+                    .style("opacity", 0)
+                    .attr("class", "tooltip")
+                    .style("background-color", "white")
+                    .style("border", "solid")
+                    .style("border-width", "2px")
+                    .style("border-radius", "5px")
+                    .style("padding", "5px")
+
+                //define the line 
+                var line = d3.line()
+                    .x(function(d) {
+                        return xL(d[0]);
+                    })
+                    .y(function(d) {
+                        return yL(d[1]);
+                    })
+
+
+                xL.domain(myYear);
+                yL.domain([0, valueMax * 1.1]);
+
+                var xAxisCall = d3.axisBottom(xL)
+                    .tickFormat(format);
+                xAxisLG.call(xAxisCall.tickSize(0))
+                    .append("text");
+                    
+                var xLable = svgL.append("text")
+                    .attr("class","x axis-lable")
+                    .attr("x", width/3)
+                    .attr("y", height + 10)
+                    .attr("font-size","10px")
+                    .attr("text-anchor", "middle")
+                    .text("Year");
+                    
+                var yLable = svgL.append("text")
+                .attr("class","y axis-lable")
+                .attr("x", -(height/2))
+                .attr("y", -50)
+                .attr("font-size","10px")
+                .attr("text-anchor", "middle")
+                .attr("transform", "rotate(-90)")
+                .text("NO of people");
+                    
+                var yAxisCall = d3.axisLeft(yL);
+                yAxisLG.call(yAxisCall.tickSize(0))
+                    .append("text");
+
+                //draw the lines
+                for (var i = 0; i < dataset.length; i++) {
+                    svgL.append("path")
+                        .datum(dataset[i].Value)
+                        .attr("fill", "none")
+                        .attr("class", "line")
+                        .attr("stroke", color(i))
+                        .attr("stroke-linejoin", "round")
+                        .attr("stroke-linecap", "round")
+                        .attr("stroke-width", 1.5)
+                        .attr("d", line)
+
+                }
+                titsL.exit();
+                titsL.text(titleValuesL);
+            })
+        }
+
+        //heatmap function:
+        function updateHeatMap() {
+            var paramArray = document.getElementById('selectArea').value.split(",");
+            var zoomValue = parseInt(paramArray[2])
+            //read the data
+            if (zoomValue == 5) {
+                var dataAddress = "https://www.activics.cf/wp-content/uploads/2019/04/EyeDiseaseAUS_New.csv";
+                var titleValue = "AUS Eye Disease";
+            } else {
+                var dataAddress = "https://www.activics.cf/wp-content/uploads/2019/04/EyeDiseaseVIC_New.csv";
+                var titleValue = "VIC Eye Disease";
+            }
+            d3.csv(dataAddress, function(error, data) {
+                if (error) throw error;
+                //text
+                var myGroups = d3.map(data, function(d) {
+                    return d.Age;
+                }).keys()
+                var myVars = d3.map(data, function(d) {
+                    return d.Disease
+                }).keys()
+
+                // mouse over the ordinate label
+                var mouseoverOL = function(d) {
+                    tooltip
+                        .style("opacity", 1)
+                    d3.select(this)
+                        .style("stroke", "black")
+                        .style("opacity", 1)
+                }
+                var mousemoveOL = function(d) {
+                    var textValue = "";
+                    if (d == "Other diseases") {
+                        textValue = "Other eye diseases with details";
+                    }
+                    if (d == "Vision or blindness") {
+                        textValue = "The disease that severely affects vision";
+                    }
+                    if (d == "Disorders of ocular muscles") {
+                        textValue = "Disease caused by strain of eye muscles";
+                    }
+                    if (d == "Hyperopia") {
+                        textValue = "See things blur up close";
+                    }
+                    if (d == "Myopia") {
+                        textValue = "See things blur in the distance";
+                    }
+                    if (d == "Macular degeneration") {
+                        textValue = "Diseases that affect the retina, <br>causing progressive loss of the reading vision";
+                    }
+                    if (d == "Astigmatism") {
+                        textValue = "Vision condition that causes blurred vision";
+                    }
+                    if (d == "Glaucoma") {
+                        textValue = "Vision is lost due to damage to the optic nerve";
+                    }
+                    if (d == "Cataract") {
+                        textValue = "A clouding of the lens in the eye which leads to a decrease in vision";
+                    }
+                    tooltip
+                        .html(d + ": " + textValue)
+                        .style("left", 200 + "px")
+                        .style("top", 390 + "px")
+                }
+
+                var mouseleaveOL = function(d) {
+                    tooltip
+                        .style("opacity", 0)
+                    d3.select(this)
+                        .style("stroke", "none")
+                        .style("opacity", 0.8)
+                }
+
+                //Build x scales and axis:
+                x.domain(myGroups);
+                var xAxisCall = d3.axisBottom(x);
+                xAxisGroup.call(xAxisCall.tickSize(2))
+                    .selectAll("text")
+                    .style("text-anchor", "start")
+                    .attr("dx", "-.8em")
+                    .attr("dy", ".8em")
+                    .attr("transform", "rotate(30)");
+                //Build y scales and axis:
+                y.domain(myVars);
+                var yAxisCall = d3.axisLeft(y);
+                yAxisGroup.call(yAxisCall.tickSize(0))
+                    .selectAll("text")
+                    .on("mouseover", mouseoverOL)
+                    .on("mousemove", mousemoveOL)
+                    .on("mouseleave", mouseleaveOL);
+
+
+
+                // create a tooltip
+                var tooltip = d3.select("#chart")
+                    .append("div")
+                    .style("opacity", 0)
+                    .attr("class", "tooltip")
+                    .style("background-color", "white")
+                    .style("border", "solid")
+                    .style("border-width", "2px")
+                    .style("border-radius", "5px")
+                    .style("padding", "5px")
+
+                // Three function that change the tooltip when user hover / move / leave a cell
+                var mouseover = function(d) {
+                    tooltip
+                        .style("opacity", 1)
+                    d3.select(this)
+                        .style("stroke", "black")
+                        .style("opacity", 1)
+                }
+                var mousemove = function(d) {
+                    tooltip
+                        .html("There are " + d.Persentage + "%" +" person in " + d.Age + " age group suffered from "+ d.Disease)
+                        .style("left", 200 + "px")
+                        .style("top", 390 + "px")
+                }
+
+                var mouseleave = function(d) {
+                    tooltip
+                        .style("opacity", 0)
+                    d3.select(this)
+                        .style("stroke", "none")
+                        .style("opacity", 0.8)
+                }
+
+
+                //delete the old diagram and draw the new one
+                var rects = svg.selectAll("rect")
+                    .data(data, function(d) {
+                        return d.Age + ':' + d.Disease;
+                    })
+
+
+                rects.exit()
+                    .attr("x", x(0))
+                    .attr("y", y(0))
+                    .attr("height", 0)
+                    .attr("width", 0)
+                    .remove();
+
+
+                rects.enter()
+                    .append("rect")
+                    .attr("x", function(d) {
+                        return x(d.Age)
+                    })
+                    .attr("y", function(d) {
+                        return y(d.Disease)
+                    })
+                    .attr("rx", 4)
+                    .attr("ry", 4)
+                    .attr("width", x.bandwidth())
+                    .attr("height", y.bandwidth())
+                    .style("fill", function(d) {
+                        return myColor(d.Persentage)
+                    })
+                    .style("stroke-width", 4)
+                    .style("stroke", "none")
+                    .style("opacity", 0.8)
+                    .style("font-size", 15)
+                    .on("mouseover", mouseover)
+                    .on("mousemove", mousemove)
+                    .on("mouseleave", mouseleave)
+                //Change the title of graph    
+                tits.exit();
+                tits.text(titleValue);
+
+            })
+        }
+    </script>
+</body></html>

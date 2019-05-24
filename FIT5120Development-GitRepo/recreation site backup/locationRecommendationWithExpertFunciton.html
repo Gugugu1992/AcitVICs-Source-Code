@@ -1,0 +1,1307 @@
+<html>
+
+<head>
+    <meta name="viewport" />
+    <style type="text/css">
+        #googft-mapCanvas {
+            height: 500px;
+            margin: 0;
+            padding: 0;
+            width: 700px;
+            float: left;
+        }
+
+        #contentDetials {
+            width: 300px;
+            height: 500px;
+            float: left;
+            margin-left: 20px;
+        }
+
+        #photos {
+            height: 200px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3&amp;libraries=visualization&amp;key=AIzaSyB4vhZzjKFielQWyeNeTOld0szKsSwsQU0&libraries=places&amp;unused-google-fusiontables"></script>
+
+
+
+
+    <script type="text/javascript">
+        var map
+        var dis;
+        var locations = [];
+        var InforObj = [];
+        var localName = "";
+        var localComment = "";
+        var placeID = "";
+        var myImage;
+        var image;
+
+
+        function getLocation() {
+            navigator.geolocation.getCurrentPosition(initialize);
+        }
+
+        function initialize(position) {
+            var clat = parseFloat(position.coords.latitude);
+            var clon = parseFloat(position.coords.longitude);
+
+            $(function() {
+                $("#expert").click(function() {
+                    document.getElementById("NameOfLocation").innerHTML = "";
+                    document.getElementById("address").innerHTML = "";
+                    document.getElementById("photos").src = "";
+                    document.getElementById("discriptions").innerHTML = "";
+                    dis = 0.5;
+                    map = new google.maps.Map(mapDiv, {
+                        center: new google.maps.LatLng(-37.901790, 145.023460),
+                        zoom: 14,
+                        panControl: false,
+                        zoomControl: false,
+                        scaleControl: true,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
+                    var iconBase =
+                        'https://img.icons8.com/nolan/52/000000/doctor-male.png';
+
+                    var icons = {
+
+                        info: {
+                            icon: iconBase
+                        }
+                    };
+
+                    var features = [{
+                            position: new google.maps.LatLng(-37.8675700, 144.9994100),
+                            type: 'info',
+                            info: "1"
+                        }, //85 Hotham St St Kilda East, Victoria 3183, East St Kilda Eye Clinic
+                        {
+                            position: new google.maps.LatLng(-37.885830, 144.999450),
+                            type: 'info',
+                            info: "2"
+                        }, //1 Ross St, Elsternwick VIC 3185, Vista Eyes Vision Specialists
+                        {
+                            position: new google.maps.LatLng(-37.884470, 145.003250),
+                            type: 'info',
+                            info: "3"
+                        }, //343 Glen Huntly Rd, Elsternwick VIC 3185, Eyecare Plus Optometrists
+                        {
+                            position: new google.maps.LatLng(-37.897640, 145.004550),
+                            type: 'info',
+                            info: "5"
+                        }, //150 Martin St, Brighton VIC 3186, Bayside Eyecare
+                        {
+                            position: new google.maps.LatLng(-37.853090, 144.998190),
+                            type: 'info',
+                            info: "6"
+                        }, //53 The Avenue, Windsor VIC 3181,NewVision Clinics
+                        {
+                            position: new google.maps.LatLng(-37.891500, 145.021280),
+                            type: 'info',
+                            info: "7"
+                        }, //423 Hawthorn Rd, Caulfield South VIC 3162, Complete Eyecare & Contact Lens Centre
+                        {
+                            position: new google.maps.LatLng(-37.902060, 145.007430),
+                            type: 'info',
+                            info: "8"
+                        }, //323 Nepean Hwy, Brighton East VIC 3187, Bayside Eye Specialists- Dr. Laurence Sullivan
+                        {
+                            position: new google.maps.LatLng(-37.905870, 145.006390),
+                            type: 'info',
+                            info: "9"
+                        }, //429 Bay St, Brighton VIC 3186,Dr. Jones Stephen
+                        {
+                            position: new google.maps.LatLng(-37.915090, 144.998230),
+                            type: 'info',
+                            info: "10"
+                        }, //14 Male St, Brighton VIC 3186,DR R A McDonald and Associates - Brighton Eye Clinic
+                        {
+                            position: new google.maps.LatLng(-37.909080, 145.025560),
+                            type: 'info',
+                            info: "11"
+                        }, // 1/162 McKinnon Rd, McKinnon VIC 3204, McKinnon Eye Clinic, Dr Ehud Zamir, Ophthalmologist and Ophthalmic Surgeon
+                        {
+                            position: new google.maps.LatLng(-37.887830, 145.030420),
+                            type: 'info',
+                            info: "12"
+                        }, //961 Glen Huntly Rd, Caulfield VIC 3162,Caulfield Eye Clinic & Laser Eye Centre - Dr. Cherny Mark
+                        {
+                            position: new google.maps.LatLng(-37.856000, 145.020400),
+                            type: 'info',
+                            info: "13"
+                        }, //93 Kooyong Rd, Armadale VIC 3143, Armadale Eye Clinic
+                        {
+                            position: new google.maps.LatLng(-37.832530, 145.055490),
+                            type: 'info',
+                            info: "14"
+                        }, //27 Denmark Hill Rd, Hawthorn East VIC 3123,Dr Devinder Chauhan
+                        {
+                            position: new google.maps.LatLng(-37.807900, 144.976640),
+                            type: 'info',
+                            info: "15"
+                        }, //77 Victoria Parade, Fitzroy VIC 3065,Melbourne Eye Specialists
+                        {
+                            position: new google.maps.LatLng(-37.741340, 144.964980),
+                            type: 'info',
+                            info: "16"
+                        }, //97 Bell St, Coburg VIC 3058,Dr Nandor Jaross
+                        {
+                            position: new google.maps.LatLng(-37.812940, 145.083520),
+                            type: 'info',
+                            info: "17"
+                        }, //403 Whitehorse Rd, Balwyn VIC 3103,JOYCE Optometrists
+                        {
+                            position: new google.maps.LatLng(-37.832340, 145.150650),
+                            type: 'info',
+                            info: "18"
+                        }, //156 Canterbury Rd, Blackburn South VIC 3130,Dr Joseph Reich
+                        {
+                            position: new google.maps.LatLng(-37.876690, 145.166700),
+                            type: 'info',
+                            info: "19"
+                        }, //226 Springvale Rd, Glen Waverley VIC 3150, Waverley Eye Clinic - Dr. Phakey Vivek
+                        {
+                            position: new google.maps.LatLng(-37.917560, 145.147670),
+                            type: 'info',
+                            info: "20"
+                        }, //Monash Specialist Center, 6/212-220 Clayton Rd, Clayton VIC 3168
+                        {
+                            position: new google.maps.LatLng(-37.903840, 145.085950),
+                            type: 'info',
+                            info: "21"
+                        }, //135 Warrigal Rd, Hughesdale VIC 3166,Oakleigh Eye Centre
+                        {
+                            position: new google.maps.LatLng(-37.961480, 145.056210),
+                            type: 'info',
+                            info: "22"
+                        }, //7 Chesterville Rd, Cheltenham VIC 3192,Cheltenham Eye Centre
+                        {
+                            position: new google.maps.LatLng(-37.930360, 145.156070),
+                            type: 'info',
+                            info: "23"
+                        }, //879 Springvale Rd, Mulgrave VIC 3170,Dr Elaine Wong
+                        {
+                            position: new google.maps.LatLng(-37.863860, 145.084930),
+                            type: 'info',
+                            info: "24"
+                        } //327 High St, Ashburton VIC 3147,Ashburton Eye Clinic
+
+                    ];
+
+
+
+                    var contentString = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">East St Kilda Eye Clinic</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>Since 1988, East St Kilda Eye Clinic has been providing a range of eye care services to patients throughout Melbourne. Known as a centre of excellence in eye care, we work across Bayside and Inner South East Melbourne and can treat patients from St Kilda, Caulfield, Armadale, Malvern, Brighton, and Albert Park, as well as from further afield.</p>' +
+                        '<p>Attribution: <a href="https://www.eye-clinic.com.au/">' +
+                        'https://www.eye-clinic.com.au/</a> ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30-17:00" + "</br>" +
+                        "Wednesday: 08:30-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Weekend:  &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+                    var contentString1 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">Vista Eyes Vision Specialists</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>VISTAeyes is Melbourne’s first purpose-designed clinic to perform laser eye surgery. Founded in 1996 by Dr Rick Wolfe, a pioneer of LASIK and laser eye surgery in Australia, VISTAeyes is an industry leader in laser eye surgery and vision correction.</p>' +
+                        '<p>Attribution: <a href="https://www.vistaeyes.com.au/">' +
+                        'https://www.vistaeyes.com.au/</a> ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:00-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:00-17:00" + "</br>" +
+                        "Wednesday: 08:00-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:00-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:00-17:00" + "</br>" +
+                        "Saturday:&nbsp;&nbsp;&nbsp;  08:30-16:30" + "</br>" +
+                        "Sunday:  &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+                    var contentString2 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">Eyecare Plus Optometrists</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>Eyecare Plus is a selected group of independently owned and clinically driven optometry practices across Australia.</p>' +
+                        '<p>Attribution: <a href="https://www.eyecareplus.com.au/">' +
+                        'https://www.eyecareplus.com.au/</a> ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:30" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 09:00-17:30" + "</br>" +
+                        "Wednesday: 09:00-19:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  09:00-17:30" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:30" + "</br>" +
+                        "Saturday:&nbsp;&nbsp;&nbsp;  09:00-14:00" + "</br>" +
+                        "Sunday:  &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+                    var contentString3 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">Bayside Eyecare</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>At Bayside Eyecare, our team of Eyecare Professionals are passionate about providing a holistic service to our clients.We offer an extensive range of services including eye examinations, glaucoma and macular degeneration checks, contact lens consultations, vision perception assessments, vision therapy and myopia control.Being an independent practice means that we are able to source the best product for you. We have access to a wide range of frames, spectacle lenses and contact lenses to suit your budget and style.</p>' +
+                        '<p>Attribution: <a href="http://baysideeyecare.com.au/">' +
+                        'http://baysideeyecare.com.au/</a> ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:30" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 09:00-17:30" + "</br>" +
+                        "Wednesday: 09:00-19:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  09:00-17:30" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:30" + "</br>" +
+                        "Saturday:&nbsp;&nbsp;&nbsp;  09:00-14:00" + "</br>" +
+                        "Sunday:  &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString4 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">NewVision Clinics</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>NewVision Clinics is a full service ophthalmological provider.  We specialise in laser eye surgery and support both LASIK and Advanced PRK techniques using the process of Lasersight®. Our principal Professor Noel Alpins is recognised around the globe as a leading authority in corrective laser eye surgery with a special interest in astigmatism, you can rest assured you have chosen a professional clinic that is leading the way in Australia.</p>' +
+                        '<p>Attribution: <a href="https://www.newvisionclinics.com.au/">' +
+                        'https://www.newvisionclinics.com.au/</a> ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:00-18:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:00-18:00" + "</br>" +
+                        "Wednesday: 09:00-19:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:00-18:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:00-18:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString5 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">Complete Eyecare & Contact Lens Centre</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>Our practice has been operating since 1985. Our intention has always been to provide quality eye care using the latest equipment and offering excellent service to all our patients. Only the best quality products are provided and we are constantly looking for innovative ideas to help improve the way you see and help you feel great about wearing your glasses. Our policy is not to compromise on quality, as vision and eye care are too important to take chances with. We always strive to provide you with eye care that is individual to your needs.</p>' +
+                        '<p>Attribution: <a href="http://www.completeeyecare.com.au/">' +
+                        'http://www.completeeyecare.com.au/</a> ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 09:00-17:00" + "</br>" +
+                        "Wednesday: 09:00-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString6 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">Bayside Eye Specialists- Dr. Laurence Sullivan</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>Bayside Eye Specialists provide a holistic, caring, personal approach to eye care.</p>' +
+                        '<p>Attribution: <a href="https://www.baysideeyes.com.au/">' +
+                        'https://www.baysideeyes.com.au/</a> ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30-17:00" + "</br>" +
+                        "Wednesday: 08:30-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString7 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">Dr. Jones Stephen</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p>Stephen Jones Eye Specialist</p>' +
+                        '<p>Contact Phone Number: 03 9596 5556' + "</br>" +
+                        'email:sjonesreception@netspace.net.au ' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 09:00-17:00" + "</br>" +
+                        "Wednesday: 09:00-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString8 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">DR R A McDonald and Associates - Brighton Eye Clinic</h4>' +
+                        '<p>We strive to provide you the best eye and vision care you have ever received. With a wide range of services from eye examinations, quality spectacle and contact lenses, to medical eye care, we see patients for any and all eye and vision needs of all ages ( as young as 6 months old!) across all 3 of our offices. We even offer weekend and late evening appointments for your convenience to help you receive the care you deserve at the time you need it.</p>' +
+
+                        '<p>Attribution: <a href="http://primaryeyeandvisioncare.com/locations/brighton-eye-clinic/">' +
+                        'http://primaryeyeandvisioncare.com/locations/brighton-eye-clinic/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "14 Male St, Brighton VIC 3186" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:00-18:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:00-18:00" + "</br>" +
+                        "Wednesday: 08:00-18:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:00-18:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:00-18:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString9 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> McKinnon Eye Clinic, Dr Ehud Zamir, Ophthalmologist and Ophthalmic Surgeon</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Ophthalmologist</p>' +
+
+                        '<p>Attribution: <a href="https://www.mckinnoneye.com.au/">' +
+                        'https://www.mckinnoneye.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "1/162 McKinnon Rd, McKinnon VIC 3204" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:30" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30-17:30" + "</br>" +
+                        "Wednesday: 08:30-17:30" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30-17:30" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:30" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString10 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> Caulfield Eye Clinic & Laser Eye Centre - Dr. Cherny Mark</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Ophthalmologist</p>' +
+
+                        '<p>Attribution: <a href="https://www.truelocal.com.au/business/dr-mark-cherny/caulfield">' +
+                        'https://www.truelocal.com.au/business/dr-mark-cherny/caulfield</a> ' + "</br>" +
+                        "<b>Address:</b>" + "961 Glen Huntly Rd, Caulfield VIC 3162" + "</br>" +
+                        '<p><b>Contact Phone Number:</b> (03) 9569 3311' + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Making appointemnts first" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+                    var contentString11 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> Armadale Eye Clinic</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Your Eye Specialist will discuss with you whether you should have further testing for conditions that could have contributed to your vein blockage.</p>' +
+
+                        '<p>Attribution: <a href="http://www.armadale-eye.com.au/">' +
+                        'http://www.armadale-eye.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "93 Kooyong Rd, Armadale VIC 3143" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9079 0888" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 09:00-17:00" + "</br>" +
+                        "Wednesday: 09:00-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  09:00-17:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString12 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> Dr Devinder Chauhan</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Dr Devinder Chauhan is a retinal ophthalmologist with over 20 years of experience. He treats all retinal, macular and vitreous conditions, including macular degeneration, diabetic retinopathy, retinal vein occlusion, retinal detachment, posterior vitreous detachment, epiretinal membrane and macular hole. Dr Chauhan specialises in the medical and surgical treatment of these conditions. Depending on your condition, he can offer eye (intravitreal) injections, surgery or laser treatment. He also routinely combines retinal operations with cataract surgery.</p>' +
+
+                        '<p>Attribution: <a href="https://visioneyeinstitute.com.au/doctors/devinder-chauhan/">' +
+                        'https://visioneyeinstitute.com.au/doctors/devinder-chauhan/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "level 1/852 Whitehorse Rd, Box Hill VIC 3128" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9890 4333" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30-17:00" + "</br>" +
+                        "Wednesday: 08:30-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+                    var contentString13 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> Melbourne Eye Specialists</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Melbourne Eye Specialists was established in 1920. Since then we have brought high quality eye care to our patients.</p>' +
+
+                        '<p>Attribution: <a href="https://www.melbeye.com.au/">' +
+                        'https://www.melbeye.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "77 Victoria Parade, Fitzroy VIC 3065" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9417 1055" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:00-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:00-17:00" + "</br>" +
+                        "Wednesday: 08:00-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:00-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:00-17:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+
+                    var contentString14 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> Dr Nandor Jaross</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Vision Eye Institute is the leading provider of ophthalmology in Australia. With clinics and day surgeries across Victoria, New South Wales and Queensland, we see more patients and perform more eye surgeries than any other ophthalmic group in Australia each year. Our dedicated team of doctors combines years of clinical expertise and a strong research program to deliver the best of care to patients. Vision Eye Institute is also committed to providing high-quality education. Our doctors are heavily involved in teaching and examining medical students, optometry students, optometrists and ophthalmology trainees.</p>' +
+
+                        '<p>Attribution: <a href="https://visioneyeinstitute.com.au/">' +
+                        'https://visioneyeinstitute.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "97 Bell St, Coburg VIC 3058" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9354 8611" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30-17:00" + "</br>" +
+                        "Wednesday: 08:30-17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30-17:00" + "</br>" + "Weekend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+
+                    var contentString15 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> JOYCE Optometrists</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> JOYCE Optometrists is an independent professional eye care practice providing affordable prescription glasses, prescription contact lenses and sunglasses (including prescription sunglasses) to all the family from grandfather to grandson and granddaughter to grandmother.</p>' +
+
+                        '<p>Attribution: <a href="https://www.joyceoptometrists.com.au/">' +
+                        'https://www.joyceoptometrists.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "403 Whitehorse Rd, Balwyn VIC 3103" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9836 8211" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  09:00–17:30" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 09:00–17:30" + "</br>" +
+                        "Wednesday: 09:00–17:30" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  09:00–17:30" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  09:00–17:30" + "</br>" +
+                        "Saturday:&nbsp;&nbsp;&nbsp;  09:00–15:00" + "</br>" +
+                        "Sunday: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString16 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> Dr Joseph Reich</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Vision Eye Institute is the leading provider of ophthalmology in Australia. With clinics and day surgeries across Victoria, New South Wales and Queensland, we see more patients and perform more eye surgeries than any other ophthalmic group in Australia each year. Our dedicated team of doctors combines years of clinical expertise and a strong research program to deliver the best of care to patients. Vision Eye Institute is also committed to providing high-quality education. Our doctors are heavily involved in teaching and examining medical students, optometry students, optometrists and ophthalmology trainees.</p>' +
+
+                        '<p>Attribution: <a href="https://visioneyeinstitute.com.au/">' +
+                        'https://visioneyeinstitute.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "156 Canterbury Rd, Blackburn South VIC 3130" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9877 6288" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30–17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30–17:00" + "</br>" +
+                        "Wednesday: 08:30–17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30–17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30–17:00" + "</br>" +
+
+                        "Weedend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString17 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">  Waverley Eye Clinic - Dr. Phakey Vivek</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Waverley Eye Clinic, established by Dr Vivek Phakey  in 1994, had its foundations in Dr. Wong’s Eye Clinic, which had serviced the region since 1969.Waverley Eye Clinic has an impressive team of experienced eye specialists and orthoptists delivering a consistently professional service of the highest quality utilising sophisticated diagnostic and therapeutic techniques.The clinic has a reputation for excellence in providing state of the art ophthalmic treatment in a newly refurbished modern, well-equipped facility.At Waverley Eye Clinic, from initial consultation to completion of treatment, you will be cared for and managed by highly experienced medically trained eye specialist and their professional and dedicated team.</p>' +
+
+                        '<p>Attribution: <a href="http://waverleyeyeclinic.com.au/">' +
+                        'http://waverleyeyeclinic.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "226 Springvale Rd, Glen Waverley VIC 3150" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9886 5522" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Making appointemnts first" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString18 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">  Monash Eye Center</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Monash Eye Care provides a range of eye care services to Monash staff and students, as well as to the wider community.</p>' +
+
+                        '<p>Attribution: <a href="https://www.monash.edu/food-and-retail/vendors/monash-eye-care">' +
+                        'https://www.monash.edu/food-and-retail/vendors/monash-eye-care</a> ' + "</br>" +
+                        "<b>Address:</b>" + "Monash Specialist Center, 6/212-220 Clayton Rd, Clayton VIC 3168" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9543 7133" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Making appointemnts first" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString19 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">  Oakleigh Eye Centre</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Oakleigh Eye Centre was started by Dr. Robert Norman Mellor in the 1970s. It was a completely different era for specialists as most were located in Collins Street. Being a pioneer in his field, Dr. Mellor recognized that patients wanted specialist medical treatment outside the CBD. The Oakleigh Eye Centre has been part of the local community for more than 40 years. </p>' +
+
+                        '<p>Attribution: <a href="http://oakleigheye.com/">' +
+                        'http://oakleigheye.com/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "135 Warrigal Rd, Hughesdale VIC 3166" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9568 7706" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30–16:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30–16:00" + "</br>" +
+                        "Wednesday: 08:30–16:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30–16:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30–16:00" + "</br>" +
+
+                        "Weedend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+
+                    var contentString20 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">  Cheltenham Eye Centre</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Offering a full range of comprehensive and caring ophthalmic services for over 30 years. </p>' +
+
+                        '<p>Attribution: <a href="http://cheltenhameyecentre.com.au/">' +
+                        'http://cheltenhameyecentre.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "7 Chesterville Rd, Cheltenham VIC 3192" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9584 6122" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30–17:30" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30–17:30" + "</br>" +
+                        "Wednesday: 08:30–17:30" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30–17:30" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30–17:30" + "</br>" +
+
+                        "Weedend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString21 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading">  Dr Elaine Wong</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Doctor Wong is committed to providing the highest standards of eye care to produce the best results with compassion, care and integrity.Over the past decade she has been providing excellence in eye care across a broad range of ophthalmological services for both adult and paediatric eye care including complex sub-speciality ocular-motility services. </p>' +
+
+                        '<p>Attribution: <a href="http://www.drwong.com.au/">' +
+                        'http://www.drwong.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "879 Springvale Rd, Mulgrave VIC 3170" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9546 4533" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "Monday:  &nbsp;&nbsp;&nbsp;&nbsp;  08:30–17:00" + "</br>" +
+                        "Tuesday:  &nbsp;&nbsp;&nbsp;&nbsp; 08:30–17:00" + "</br>" +
+                        "Wednesday: 08:30–17:00" + "</br>" +
+                        "Thursday:&nbsp;&nbsp;&nbsp;  08:30–17:00" + "</br>" +
+                        "Friday:  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  08:30–17:00" + "</br>" +
+
+                        "Weedend: &nbsp;&nbsp;&nbsp; Close down" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    var contentString22 = '<div id="content">' +
+                        '<div id="siteNotice">' +
+                        '</div>' +
+                        '<h4 id="firstHeading" class="firstHeading"> Ashburton Eye Clinic</h4>' +
+                        '<div id="bodyContent">' +
+                        '<p> Dr Simon Permezel is a respected eye surgeon and specialist in cataract surgery who has over 23 years experience caring for patients of all ages. After completing his medical degree at Melbourne University, Dr Permezel gained a depth of experience as an opthalmologist in a number of key insitutions. He is currently a visiting Ophthalmologist at the Victorian Eye and Ear hospital, having also held positions at the Austin and Alfred hospitals in the past. He also practices as a neuro-opthalmologist in his work at the Eye and Ear hospital. </p>' +
+
+                        '<p>Attribution: <a href="http://www.eyesee.com.au/">' +
+                        'http://www.eyesee.com.au/</a> ' + "</br>" +
+                        "<b>Address:</b>" + "327 High St, Ashburton VIC 3147" + "</br>" +
+                        "<b>Contact Phone Number:</b>" + "(03) 9885 0950" + "</br>" +
+                        "<b>Opening hours:</b>" + "</br>" +
+                        "require appointemnts first" + "</br>" +
+                        '</p>' +
+                        '</div>' +
+                        '</div>';
+                    //0
+                    var infowindow = new google.maps.InfoWindow({
+                        content: contentString
+                    });
+
+                    var marker = new google.maps.Marker({
+                        position: features[0].position,
+                        icon: icons[features[0].type].icon,
+                        map: map,
+                        title: 'East St Kilda Eye Clinic (Ayers Rock)'
+                    });
+                    marker.addListener('click', function() {
+                        infowindow.open(map, marker);
+                    });
+                    //1
+                    var infowindow1 = new google.maps.InfoWindow({
+                        content: contentString1
+                    });
+
+                    var marker1 = new google.maps.Marker({
+                        position: features[1].position,
+                        icon: icons[features[1].type].icon,
+                        map: map,
+                        title: ' Vista Eyes Vision Specialists(Ayers Rock)'
+                    });
+                    marker1.addListener('click', function() {
+                        infowindow1.open(map, marker1);
+                    });
+                    //2
+                    var infowindow2 = new google.maps.InfoWindow({
+                        content: contentString2
+                    });
+
+                    var marker2 = new google.maps.Marker({
+                        position: features[2].position,
+                        icon: icons[features[2].type].icon,
+                        map: map,
+                        title: ' Eyecare Plus Optometrists(Ayers Rock)'
+                    });
+                    marker2.addListener('click', function() {
+                        infowindow2.open(map, marker2);
+                    });
+
+                    //3
+                    var infowindow3 = new google.maps.InfoWindow({
+                        content: contentString3
+                    });
+
+                    var marker3 = new google.maps.Marker({
+                        position: features[3].position,
+                        icon: icons[features[3].type].icon,
+                        map: map,
+                        title: ' Bayside Eyecare(Ayers Rock)'
+                    });
+                    marker3.addListener('click', function() {
+                        infowindow3.open(map, marker3);
+                    });
+
+                    //4
+                    var infowindow4 = new google.maps.InfoWindow({
+                        content: contentString4
+                    });
+
+                    var marker4 = new google.maps.Marker({
+                        position: features[4].position,
+                        icon: icons[features[4].type].icon,
+                        map: map,
+                        title: ' NewVision Clinics(Ayers Rock)'
+                    });
+                    marker4.addListener('click', function() {
+                        infowindow4.open(map, marker4);
+                    });
+                    //5
+                    var infowindow5 = new google.maps.InfoWindow({
+                        content: contentString5
+                    });
+
+                    var marker5 = new google.maps.Marker({
+                        position: features[5].position,
+                        icon: icons[features[5].type].icon,
+                        map: map,
+                        title: ' Complete Eyecare & Contact Lens Centre(Ayers Rock)'
+                    });
+                    marker5.addListener('click', function() {
+                        infowindow5.open(map, marker5);
+                    });
+
+                    //6
+                    var infowindow6 = new google.maps.InfoWindow({
+                        content: contentString6
+                    });
+
+                    var marker6 = new google.maps.Marker({
+                        position: features[6].position,
+                        icon: icons[features[6].type].icon,
+                        map: map,
+                        title: ' Bayside Eye Specialists- Dr. Laurence Sullivan(Ayers Rock)'
+                    });
+                    marker6.addListener('click', function() {
+                        infowindow6.open(map, marker6);
+                    });
+
+                    //7
+                    var infowindow7 = new google.maps.InfoWindow({
+                        content: contentString7
+                    });
+
+                    var marker7 = new google.maps.Marker({
+                        position: features[7].position,
+                        icon: icons[features[7].type].icon,
+                        map: map,
+                        title: ' Dr. Jones Stephen(Ayers Rock)'
+                    });
+                    marker7.addListener('click', function() {
+                        infowindow7.open(map, marker7);
+                    });
+                    //8
+                    var infowindow8 = new google.maps.InfoWindow({
+                        content: contentString8
+                    });
+
+                    var marker8 = new google.maps.Marker({
+                        position: features[8].position,
+                        icon: icons[features[8].type].icon,
+                        map: map,
+                        title: ' DR R A McDonald and Associates - Brighton Eye Clinic(Ayers Rock)'
+                    });
+                    marker8.addListener('click', function() {
+                        infowindow8.open(map, marker8);
+                    });
+                    //9        
+                    var infowindow9 = new google.maps.InfoWindow({
+                        content: contentString9
+                    });
+
+                    var marker9 = new google.maps.Marker({
+                        position: features[9].position,
+                        icon: icons[features[9].type].icon,
+                        map: map,
+                        title: ' McKinnon Eye Clinic, Dr Ehud Zamir, Ophthalmologist and Ophthalmic Surgeon(Ayers Rock)'
+                    });
+                    marker9.addListener('click', function() {
+                        infowindow9.open(map, marker9);
+                    });
+
+                    //10
+                    var infowindow10 = new google.maps.InfoWindow({
+                        content: contentString10
+                    });
+                    var marker10 = new google.maps.Marker({
+                        position: features[10].position,
+                        icon: icons[features[10].type].icon,
+                        map: map,
+                        title: ' Caulfield Eye Clinic & Laser Eye Centre - Dr. Cherny Mark(Ayers Rock)'
+                    });
+                    marker10.addListener('click', function() {
+                        infowindow10.open(map, marker10);
+                    });
+                    //11
+                    var infowindow11 = new google.maps.InfoWindow({
+                        content: contentString11
+                    });
+                    var marker11 = new google.maps.Marker({
+                        position: features[11].position,
+                        icon: icons[features[11].type].icon,
+                        map: map,
+                        title: '  Armadale Eye Clinic(Ayers Rock)'
+                    });
+                    marker11.addListener('click', function() {
+                        infowindow11.open(map, marker11);
+                    });
+                    //12
+                    var infowindow12 = new google.maps.InfoWindow({
+                        content: contentString12
+                    });
+                    var marker12 = new google.maps.Marker({
+                        position: features[12].position,
+                        icon: icons[features[12].type].icon,
+                        map: map,
+                        title: '  Dr Devinder Chauhan(Ayers Rock)'
+                    });
+                    marker12.addListener('click', function() {
+                        infowindow12.open(map, marker12);
+                    });
+                    //13
+                    var infowindow13 = new google.maps.InfoWindow({
+                        content: contentString13
+                    });
+                    var marker13 = new google.maps.Marker({
+                        position: features[13].position,
+                        icon: icons[features[13].type].icon,
+                        map: map,
+                        title: '  Melbourne Eye Specialists(Ayers Rock)'
+                    });
+                    marker13.addListener('click', function() {
+                        infowindow13.open(map, marker13);
+                    });
+                    //14
+                    var infowindow14 = new google.maps.InfoWindow({
+                        content: contentString14
+                    });
+                    var marker14 = new google.maps.Marker({
+                        position: features[14].position,
+                        icon: icons[features[14].type].icon,
+                        map: map,
+                        title: '  Dr Nandor Jaross(Ayers Rock)'
+                    });
+                    marker14.addListener('click', function() {
+                        infowindow14.open(map, marker14);
+                    });
+
+                    //15
+                    var infowindow15 = new google.maps.InfoWindow({
+                        content: contentString15
+                    });
+                    var marker15 = new google.maps.Marker({
+                        position: features[15].position,
+                        icon: icons[features[15].type].icon,
+                        map: map,
+                        title: '  JOYCE Optometrists(Ayers Rock)'
+                    });
+                    marker15.addListener('click', function() {
+                        infowindow15.open(map, marker15);
+                    });
+                    //16
+                    var infowindow16 = new google.maps.InfoWindow({
+                        content: contentString16
+                    });
+                    var marker16 = new google.maps.Marker({
+                        position: features[16].position,
+                        icon: icons[features[16].type].icon,
+                        map: map,
+                        title: '  Dr Joseph Reich(Ayers Rock)'
+                    });
+                    marker16.addListener('click', function() {
+                        infowindow16.open(map, marker16);
+                    });
+
+                    //17
+                    var infowindow17 = new google.maps.InfoWindow({
+                        content: contentString17
+                    });
+                    var marker17 = new google.maps.Marker({
+                        position: features[17].position,
+                        icon: icons[features[17].type].icon,
+                        map: map,
+                        title: '  Waverley Eye Clinic - Dr. Phakey Vivek(Ayers Rock)'
+                    });
+                    marker17.addListener('click', function() {
+                        infowindow17.open(map, marker17);
+                    });
+                    //18
+                    var infowindow18 = new google.maps.InfoWindow({
+                        content: contentString18
+                    });
+                    var marker18 = new google.maps.Marker({
+                        position: features[18].position,
+                        icon: icons[features[18].type].icon,
+                        map: map,
+                        title: '  Monash Specialist Center(Ayers Rock)'
+                    });
+                    marker18.addListener('click', function() {
+                        infowindow18.open(map, marker18);
+                    });
+                    //19
+                    var infowindow19 = new google.maps.InfoWindow({
+                        content: contentString19
+                    });
+                    var marker19 = new google.maps.Marker({
+                        position: features[19].position,
+                        icon: icons[features[19].type].icon,
+                        map: map,
+                        title: '  Oakleigh Eye Centre(Ayers Rock)'
+                    });
+                    marker19.addListener('click', function() {
+                        infowindow19.open(map, marker19);
+                    });
+
+                    //20
+                    var infowindow20 = new google.maps.InfoWindow({
+                        content: contentString20
+                    });
+                    var marker20 = new google.maps.Marker({
+                        position: features[20].position,
+                        icon: icons[features[20].type].icon,
+                        map: map,
+                        title: '  Cheltenham Eye Centre(Ayers Rock)'
+                    });
+                    marker20.addListener('click', function() {
+                        infowindow20.open(map, marker20);
+                    });
+
+                    //21
+                    var infowindow21 = new google.maps.InfoWindow({
+                        content: contentString21
+                    });
+                    var marker21 = new google.maps.Marker({
+                        position: features[21].position,
+                        icon: icons[features[21].type].icon,
+                        map: map,
+                        title: '  Dr Elaine Wong(Ayers Rock)'
+                    });
+                    marker21.addListener('click', function() {
+                        infowindow21.open(map, marker21);
+                    });
+
+                    //22
+                    var infowindow22 = new google.maps.InfoWindow({
+                        content: contentString22
+                    });
+                    var marker22 = new google.maps.Marker({
+                        position: features[22].position,
+                        icon: icons[features[22].type].icon,
+                        map: map,
+                        title: '  Ashburton Eye Clinic(Ayers Rock)'
+                    });
+                    marker22.addListener('click', function() {
+                        infowindow22.open(map, marker22);
+                    });
+
+                    infoWindow23 = new google.maps.InfoWindow;
+
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(position) {
+                            var pos = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+
+                            infoWindow23.setPosition(pos);
+                            infoWindow23.setContent('Your Location .');
+                            infoWindow23.open(map);
+                            map.setCenter(pos);
+                        }, function() {
+                            handleLocationError(true, infoWindow23, map.getCenter());
+                        });
+                    }
+
+                })
+
+            })
+
+
+            $(function() {
+                $("#recreation").click(function() {
+                    document.getElementById("NameOfLocation").innerHTML = "";
+                    document.getElementById("address").innerHTML = "";
+                    document.getElementById("photos").src = "";
+                    document.getElementById("discriptions").innerHTML = "";
+                    dis = 0.5;
+                    var minclat = clat - dis;
+                    var maxclat = clat + dis;
+                    var minclon = clon - dis;
+                    var maxclon = clon + dis;
+                    $.post('/wp-admin/admin-ajax.php', {
+                        "action": 'my_action',
+                        "clat1": minclat,
+                        "clat2": maxclat,
+                        "clon1": minclon,
+                        "clon2": maxclon
+                    }, function(response) {
+                        //return the json format.
+                        locations = response;
+                        console.log(locations);
+                        addMarkerInfo();
+                    });
+
+                    image = {
+                        url: 'https://img.icons8.com/cotton/42/000000/tree.png',
+                        // This marker is 20 pixels wide by 32 pixels high.
+                        size: new google.maps.Size(100, 50),
+                        // The origin for this image is (0, 0).
+                        origin: new google.maps.Point(0, 0),
+                        // The anchor for this image is the base of the flagpole at (0, 32).
+                        anchor: new google.maps.Point(0, 32)
+                    };
+                    map = new google.maps.Map(mapDiv, {
+                        center: new google.maps.LatLng(clat, clon),
+                        zoom: 7,
+                        // mapTypeId: google.maps.MapTypeId['ROADMAP'],
+                        panControl: false,
+                        zoomControl: false,
+                        scaleControl: true,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
+                    layer = new google.maps.FusionTablesLayer({
+                        map: map,
+                        heatmap: {
+                            enabled: false
+                        },
+                        query: {
+                            select: "col12",
+                            from: "11RmOfqswC5YS9lJ_HcMA1Vi3f0TPGy48skybaC65",
+                            where: ""
+                        },
+                        options: {
+                            styleId: 2,
+                            templateId: 2
+                        }
+                    });
+                    var marker = new google.maps.Marker({
+                        position: {
+                            lat: clat,
+                            lng: clon
+                        },
+                        map: map,
+                        title: 'Your current location',
+                        icon: myImage
+                    });
+                })
+
+            })
+
+            $(function() {
+                $("#sport").click(function() {
+                    document.getElementById("NameOfLocation").innerHTML = "";
+                    document.getElementById("address").innerHTML = "";
+                    document.getElementById("photos").src = "";
+                    document.getElementById("discriptions").innerHTML = "";
+                    dis = 0.03;
+                    var minclat = clat - dis;
+                    var maxclat = clat + dis;
+                    var minclon = clon - dis;
+                    var maxclon = clon + dis;
+                    $.post('/wp-admin/admin-ajax.php', {
+                        "action": 'my_search',
+                        "clat1": minclat,
+                        "clat2": maxclat,
+                        "clon1": minclon,
+                        "clon2": maxclon
+                    }, function(response) {
+                        //return the json format.
+                        locations = response;
+                        console.log(locations);
+                        addSportMarkerInfo();
+                    });
+                    image = {
+                        url: 'https://img.icons8.com/color/42/000000/sport.png',
+                        // This marker is 20 pixels wide by 32 pixels high.
+                        size: new google.maps.Size(100, 50),
+                        // The origin for this image is (0, 0).
+                        origin: new google.maps.Point(0, 0),
+                        // The anchor for this image is the base of the flagpole at (0, 32).
+                        anchor: new google.maps.Point(0, 32)
+                    };
+                    map = new google.maps.Map(mapDiv, {
+                        center: new google.maps.LatLng(clat, clon),
+                        zoom: 15,
+                        // mapTypeId: google.maps.MapTypeId['ROADMAP'],
+                        panControl: false,
+                        zoomControl: false,
+                        scaleControl: true,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
+                    var marker = new google.maps.Marker({
+                        position: {
+                            lat: clat,
+                            lng: clon
+                        },
+                        map: map,
+                        title: 'Your current location',
+                        icon: myImage
+                    });
+                })
+            })
+
+
+            var mapDiv = document.getElementById('googft-mapCanvas');
+            map = new google.maps.Map(mapDiv, {
+                center: new google.maps.LatLng(clat, clon),
+                zoom: 7,
+                // mapTypeId: google.maps.MapTypeId['ROADMAP'],
+                panControl: false,
+                zoomControl: false,
+                scaleControl: true,
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+            //add fusiontable layer
+            layer = new google.maps.FusionTablesLayer({
+                map: map,
+                heatmap: {
+                    enabled: false
+                },
+                query: {
+                    select: "col12",
+                    from: "11RmOfqswC5YS9lJ_HcMA1Vi3f0TPGy48skybaC65",
+                    where: ""
+                },
+                options: {
+                    styleId: 2,
+                    templateId: 2
+                }
+            });
+            //the flag logo
+            myImage = {
+                url: 'https://img.icons8.com/dusk/44/000000/region-code.png',
+                // This marker is 20 pixels wide by 32 pixels high.
+                size: new google.maps.Size(100, 50),
+                // The origin for this image is (0, 0).
+                origin: new google.maps.Point(0, 0),
+                // The anchor for this image is the base of the flagpole at (0, 32).
+                anchor: new google.maps.Point(0, 32)
+            };
+
+            var marker = new google.maps.Marker({
+                position: {
+                    lat: clat,
+                    lng: clon
+                },
+                map: map,
+                title: 'Your current location',
+                icon: myImage
+            });
+        }
+
+        function showDetials() {
+            document.getElementById("NameOfLocation").innerHTML = "";
+            document.getElementById("address").innerHTML = "";
+            document.getElementById("photos").src = "";
+            document.getElementById("discriptions").innerHTML = "";
+            localName = document.getElementById("cName").innerHTML;
+            localName = localName + " VIC 3611"
+            console.log(localName)
+            localComment = document.getElementById("cComment").innerHTML;
+            var request = {
+                query: localName,
+                fields: ['name', 'photos', 'formatted_address', 'place_id'],
+            };
+            var service = new google.maps.places.PlacesService(map);
+            service.findPlaceFromQuery(request, function(results, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    if (results.length != 0) {
+                        placeID = results[0].place_id;
+
+                        var requestDetail = {
+                            placeId: placeID,
+                            fields: ['formatted_address', 'permanently_closed', 'photo', 'icon']
+                        };
+
+                        var detialService = new google.maps.places.PlacesService(map);
+                        detialService.getDetails(requestDetail, callback);
+
+                        function callback(place, status) {
+                            if (status == google.maps.places.PlacesServiceStatus.OK) {
+                                document.getElementById("NameOfLocation").innerHTML = localName;
+                                document.getElementById("address").innerHTML = place.formatted_address;
+                                document.getElementById("discriptions").innerHTML = localComment;
+                                if (typeof(place.photos) != "undefined") {
+                                    document.getElementById("photos").src = place.photos[0].getUrl({
+                                        maxWidth: 350,
+                                        maxHeight: 350
+                                    })
+                                }
+                            }
+                        };
+                    } else {
+                        document.getElementById("NameOfLocation").innerHTML = localName;
+                        document.getElementById("discriptions").innerHTML = localComment;
+                    }
+                } else {
+                    document.getElementById("NameOfLocation").innerHTML = localName;
+                    document.getElementById("discriptions").innerHTML = localComment;
+                }
+            });
+
+
+        }
+
+        function addSportMarkerInfo() {
+            var word1 = "Facility Type: ";
+            var word2 = "Facility Conditions: ";
+            for (var i = 0; i < locations.length; i++) {
+                var contentString = '<div id="content">' + '<h4 id="cName">' + locations[i]["facilityName"] + '</h4></br><p id="cComment">' + word1 + locations[i].sportsPlayed + '</p></br><p id="conditions">' + word2 + locations[i].facilityCondition + '</p></br><input id="clickMe" type="button" value="Learn more" onclick="showDetials()"/></div>';
+
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(locations[i].latitude),
+                        lng: parseFloat(locations[i].longitude)
+                    },
+                    map: map,
+                    icon: image
+
+                });
+                const infowindow = new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 200
+                });
+                marker.addListener('click', function() {
+                    closeOtherInfo();
+                    infowindow.open(marker.get('map'), marker);
+                    InforObj[0] = infowindow;
+                });
+            }
+            locations = [];
+
+        }
+
+
+        function addMarkerInfo() {
+
+            for (var i = 0; i < locations.length; i++) {
+                var contentString = '<div id="content">' + '<h4 id="cName">' + locations[i]["site_name"] + '</h4></br><p id="cComment">' + locations[i].access_dsc + '</p></br><input id="clickMe" type="button" value="Learn more" onclick="showDetials()"/></div>';
+
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(locations[i].latitude),
+                        lng: parseFloat(locations[i].longitude)
+                    },
+                    map: map,
+                    icon: image
+
+                });
+                const infowindow = new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 200
+                });
+                marker.addListener('click', function() {
+                    closeOtherInfo();
+                    infowindow.open(marker.get('map'), marker);
+                    InforObj[0] = infowindow;
+                });
+            }
+            locations = [];
+        }
+
+        function closeOtherInfo() {
+            if (InforObj.length > 0) {
+                InforObj[0].set("marker", null);
+                InforObj[0].close();
+                InforObj.length = 0;
+            }
+        }
+
+        google.maps.event.addDomListener(window, 'load', getLocation);
+    </script>
+</head>
+
+<body>
+    <div id="googft-mapCanvas">
+        <div class="d-flex justify-content-center">
+            <div id="columnV">
+                <button id="loadingButton" class="btn btn-primary" type="button" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only"></span>
+                    Loading...
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="btn-group" role="group" aria-label="Basic example">
+        <button id="recreation" type="button" class="btn btn-secondary">Recreation Site</button>
+        <button id="sport" type="button" class="btn btn-secondary">Sport Facilities</button>
+        <button id="expert" type="button" class="btn btn-secondary">Professional Help</button>
+    </div>
+    <div id="contentDetials">
+        <h4 id="NameOfLocation"></h4>
+        <p id="address"></p>
+        <img id="photos">
+        <p id="discriptions"></p>
+    </div>
+</body></html>

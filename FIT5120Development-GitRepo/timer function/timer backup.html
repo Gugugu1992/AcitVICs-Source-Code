@@ -1,0 +1,261 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integr ity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <style>
+        body{
+            background-color: #339933
+        }
+        .timer-div {
+            position: relative;
+            color: white;
+            text-align: center;
+            border: 2px solid white;
+            border-radius: 100%;
+            height: 150px;
+            width: 150px;
+            margin: 10px auto;
+            background-color: #FFFFFF;
+
+        }
+        #settingTitle{
+            margin-bottom: 0px;
+        }
+
+        #timer-status {
+            position: relative;
+            top: -2px;
+            left: -2px;
+            margin: 0px;
+            width: 150px;
+            height: 150px;
+            border-radius: 100%;
+            transform: scale(0);
+        }
+
+        .pomodoro-color {
+            background-color: #FF6666;
+        }
+
+        #timer {
+
+            color:#FFCC33;
+            position: absolute;
+            top: 35%;
+            right: 25%;
+            font-size: 30px;
+            z-index: 1;
+        }
+
+        .buttons {
+            margin-top: 10px;
+            text-align: center;
+            color: #339933;
+        }
+
+        .buttons button {
+            height: 30px;
+            width: 60px;
+            margin: 2px;
+            background-color: #FFFFFF;
+        }
+
+        .time-controls {
+            text-align: center;
+            color: white;
+        }
+
+        .change-time {
+            display: inline-block;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script>
+        //define the timer;
+        var Timer = function(mins) {
+            var timer = Math.round(mins * 60 * 1000);
+            var startTime = 0;
+            var timeElapsed = 0;
+
+            this.now = function() {
+                return (new Date()).getTime();
+            };
+
+            this.start = function() {
+                startTime = timeElapsed ? this.now() - timeElapsed : this.now();
+            };
+
+            this.pause = function() {
+                timeElapsed = this.now() - startTime;
+            };
+
+            this.timeRemaining = function() {
+                var remTime = startTime ? timer - (this.now() - startTime) : timer;
+                return remTime;
+            };
+        };
+        //set the start value of timer
+        var duration = 3;
+        var x = new Timer(duration);
+        var $time;
+        var $pom;
+        var clockTimeout;
+        
+        //define the notification;
+        var Notification = window.Notification || window.mozNotification || window.webkitNotification;
+        Notification.requestPermission(function(permission) {});
+        //update the timer to show countdown;
+        function update() {
+            var minutes, seconds, millisecs;
+            var remTime = x.timeRemaining();
+            var remTimeArr = formatTime(remTime);
+            if (remTime > 0) {
+                minutes = remTimeArr[0];
+                seconds = remTimeArr[1];
+                millisecs = remTimeArr[2];
+                scaleBg();
+            } else {
+                minutes = 0;
+                seconds = 0;
+                millisecs = 0;
+                clearInterval(clockTimeout);
+                clockTimeout = false;
+                triggerAlarm();
+                alertUser();
+            }
+            $time.innerHTML = padNums(minutes, 2) + ":" + padNums(seconds, 2); 
+        }
+
+        function padNums(num, spaces) {
+            num = "" + num;
+            return ("0000" + num).substring(4 + num.length - spaces);
+        }
+
+        function formatTime(remTime) {
+            var minutes = Math.floor(remTime / 60000);
+            var seconds = Math.floor(remTime % 60000 / 1000);
+            var millisecs = Math.floor(remTime % 60000 % 1000);
+            return [minutes, seconds, millisecs];
+        }
+
+        function start() {
+            if (!clockTimeout) {
+                x.start();
+                clockTimeout = setInterval(update, 1);
+            }
+        }
+
+        function pause() {
+            clearInterval(clockTimeout);
+            clockTimeout = false;
+            x.pause();
+        }
+
+        function setup() {
+            $time = document.getElementById('timer');
+            $dur = document.getElementById('duration');
+            $status = document.getElementById('timer-status');
+            $dur.innerHTML = duration;
+            update();
+        }
+
+        function reset() {
+            x = new Timer(duration);
+            clearInterval(clockTimeout);
+            clockTimeout = false;
+            update();
+        }
+
+        function restart() {
+            x = new Timer(duration);
+            $status.className = 'pomodoro-color';
+            start();
+        }
+
+        //Scale background pom
+        function scaleBg() {
+            var totalTime =  duration * 60 * 1000;
+            var percTotDur = (totalTime - x.timeRemaining()) / totalTime;
+           
+            $status.style.transform = 'scale(' + percTotDur + ')';
+        }
+
+        //Change the Duration by amt
+        function chDur(amt) {
+            if (duration > 1 || amt > 0) {
+                duration += amt;
+                $dur.innerHTML = duration;
+                reset();
+            }
+        }
+
+        //Creates a desktop popup alerting that the session is over
+        function alertUser() {
+            window.setTimeout(function() {
+                var instance = new Notification(
+                    "Exercise Timer", {
+                        body: "This exercise has ended, try next one!"
+                    }
+                );
+
+                setTimeout(function() {
+                    instance.close();
+                }, 5000);
+
+                instance.onclick = function() {
+                    window.focus();
+                };
+
+            }, 0);
+        }
+
+        //Plays Price is Right losing sound
+        function triggerAlarm() {
+            var $audio = $('<audio />', {
+                autoPlay: 'autoplay'
+            });
+
+            $('<source>', {
+                src: 'https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3'
+            }).appendTo($audio);
+
+            $("body").append($audio);
+
+            setTimeout(function(audElm) {
+                audElm.remove();
+            }, 5000, $audio);
+        }
+
+    </script>
+</head>
+
+
+<body onload='setup()'>
+    
+    <div class='timer-div'>
+        <span id='timer'>3:00</span>
+        <div id='timer-status' class='pomodoro-color'></div>
+    </div>
+    <div class='time-controls'>
+        <div class='change-time'>
+            <p id='settingTitle'>Setting Time</p>
+            <span class="btn glyphicon glyphicon-minus" onclick='chDur(-1)' aria-hidden="true"></span>
+            <span id='duration'>3</span>
+            <span class="btn glyphicon glyphicon-plus" onclick='chDur(1)' aria-hidden="true"></span>
+        </div>
+
+    </div>
+    <div class='buttons'>
+        <button class="btn start" onclick='start()'>
+            <span class="glyphicon glyphicon-play"></span>
+        </button>
+        <button class="btn pause" onclick='pause()'>
+            <span class="glyphicon glyphicon-pause"></span> </button> <button class="btn reset" onclick='reset()'>
+            <span class="glyphicon glyphicon-repeat"></span>
+        </button>
+    </div>
+</body>
+
+</html>

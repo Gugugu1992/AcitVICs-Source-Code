@@ -1,0 +1,519 @@
+<html>
+
+<head>
+    <meta name="viewport" />
+    <style type="text/css">
+        #googft-mapCanvas {
+            height: 600px;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            float: left;
+        }
+
+        #contentDetials {
+            width: 100%;
+            height: 550px;
+            float: left;
+            margin-left: 40px;
+        }
+
+        #photos {
+            height: 200px;
+        }
+
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3&amp;libraries=visualization&amp;key=AIzaSyB4vhZzjKFielQWyeNeTOld0szKsSwsQU0&libraries=places&amp;unused-google-fusiontables"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+
+    <script type="text/javascript">
+        // instance of the map;
+        var map
+        // variable of distance which decides the square of the box on the map;
+        var dis;
+        // variable use to store the data from the database;
+        var locations = [];
+        // store the information window shows on the map
+        var InforObj = [];
+        // global variable use to store the use clicked mark location's name;
+        var localName = "";
+        // global variable use to store the use clicked mark location's comment;
+        var localComment = "";
+        // placeID is used to store the location's id in google places API;
+        var placeID = "";
+        // icon for user current location;
+        var myImage;
+        // icon for all marks' location;
+        var image;
+        // Set the bounds for whole VIC, and limited the map scale;
+        var Australia_BOUNDS = {
+            north: -33.41,
+            south: -39.60,
+            west: 140.00,
+            east: 150.64
+        };
+
+        //Get user's current location & hiddent the datatable;
+        function getLocation() {
+            navigator.geolocation.getCurrentPosition(initialize);
+            //When user reload the page, the datatable should invisible;
+            document.getElementById("siteTable").style.visibility = "hidden";
+
+        }
+
+        function initialize(position) {
+            //from the position to get the user's latitude and longitude used to mark icon;
+            var clat = parseFloat(position.coords.latitude);
+            var clon = parseFloat(position.coords.longitude);
+            // Function will process when user click recreation button;
+            $(function() {
+                $("#recreation").click(function() {
+                    //Delete all the content in these element & show the datatable;
+                    document.getElementById("NameOfLocation").innerHTML = "";
+                    document.getElementById("address").innerHTML = "";
+                    document.getElementById("photos").src = "";
+                    document.getElementById("descriptions").innerHTML = "";
+                    document.getElementById("siteTable").style.visibility = "visible";
+                    //the box setting with user's position as centre;
+                    dis = 3;
+                    var minclat = clat - dis;
+                    var maxclat = clat + dis;
+                    var minclon = clon - dis;
+                    var maxclon = clon + dis;
+                    //send ajax require to my_action defined in function.php to interact with DB.
+                    $.post('/wp-admin/admin-ajax.php', {
+                        // define action and parameters;
+                        "action": 'my_action',
+                        "clat1": minclat,
+                        "clat2": maxclat,
+                        "clon1": minclon,
+                        "clon2": maxclon
+                    }, function(response) {
+                        //return the json format.
+                        locations = response;
+                        addMarkerInfo();
+                        // define the content in datatbale;
+                        $("#siteTable").DataTable({
+                            destroy : true, 
+                            pagingType : "full_numbers",
+                            columnDefs : [{
+                                 targets : 2,
+                                 render : function ( data, type, full, meta )
+                                 { 
+                                     return "<input type = 'button' id = 'siteButton' value = 'View on Map'>"
+                                 }
+                            }],
+                            columns : [
+                                { "data": "site_name" },
+                                { "data": "access_dsc" },
+                                { "data": null },
+                                { "data": "latitude","visible": false },
+                                { "data": "longitude","visible": false}
+                            ],
+                            data : response,
+                        });
+                    });
+                    //the icon content of marker;
+                    image = {
+                        url: 'https://img.icons8.com/cotton/42/000000/tree.png',
+                        // This marker is 20 pixels wide by 32 pixels high.
+                        size: new google.maps.Size(100, 50),
+                        // The origin for this image is (0, 0).
+                        origin: new google.maps.Point(0, 0),
+                        // The anchor for this image is the base of the flagpole at (0, 32).
+                        anchor: new google.maps.Point(0, 32)
+                    };
+                    
+                    // define the function when user click the "show on map" button in datatable;
+                    $("#siteTable tbody").on("click", "#siteButton", function () {
+                        document.getElementById("NameOfLocation").innerHTML = "";
+                        document.getElementById("address").innerHTML = "";
+                        document.getElementById("photos").src = "";
+                        document.getElementById("descriptions").innerHTML = "";
+                        //get the row
+                        var row = $("table#siteTable tr").index($(this).closest("tr"));
+                        //get the columns'（from 0 to start）value
+                        var ver1 = $("#siteTable").DataTable().row(row-1).data().latitude;
+                        var ver2 = $("#siteTable").DataTable().row(row-1).data().longitude;
+                        var nameSite = $("#siteTable").DataTable().row(row-1).data().site_name;
+                        var disSite = $("#siteTable").DataTable().row(row-1).data().access_dsc;                        
+                        var latChosen = parseFloat(ver1);
+                        var lngChosen = parseFloat(ver2);
+                        map.setCenter({lat:latChosen, lng:lngChosen });
+                        map.setZoom(12);
+                        //want to show the infowindow                         
+                        var contentString = '<div id="content">' + '<h4 id="cName">' + nameSite + '</h4></br><p id="cComment">' + disSite + '</p></br><input id="clickMe" type="button" value="Learn more" onclick="showDetials()"/></div>';
+                        // add the marker on the map
+                        const marker = new google.maps.Marker({
+                            position: {
+                                lat: parseFloat(latChosen),
+                                lng: parseFloat(lngChosen)
+                            },
+                            map: map,
+                            icon: image
+        
+                        });
+                        //add the information window for each icon;
+                        const infowindow = new google.maps.InfoWindow({
+                            content: contentString,
+                            maxWidth: 200
+                        });
+                        closeOtherInfo();
+                        infowindow.open(marker.get('map'), marker);
+                        InforObj[0] = infowindow;
+                    });
+                    
+                    // create the instance of the google map;
+                    map = new google.maps.Map(mapDiv, {
+                        center: new google.maps.LatLng(clat, clon),
+                        restriction: {
+                            latLngBounds: Australia_BOUNDS,
+                            strictBounds: false,
+                        },
+                        zoom: 7,
+                        panControl: false,
+                        zoomControl: false,
+                        scaleControl: true,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
+                    //add the fusion table layer on the map;
+                    layer = new google.maps.FusionTablesLayer({
+                        map: map,
+                        heatmap: {
+                            enabled: false
+                        },
+                        query: {
+                            select: "col12",
+                            from: "11RmOfqswC5YS9lJ_HcMA1Vi3f0TPGy48skybaC65",
+                            where: ""
+                        },
+                        options: {
+                            styleId: 2,
+                            templateId: 2
+                        }
+                    });
+                    // add the marker of user current location;
+                    var marker = new google.maps.Marker({
+                        position: {
+                            lat: clat,
+                            lng: clon
+                        },
+                        map: map,
+                        title: 'Your current location',
+                        icon: myImage
+                    });
+                    marker.addListener('click', function() {
+                      map.setZoom(8);
+                      map.setCenter(marker.getPosition());
+                    });
+                })
+
+            })
+            // Function will process when user click sport facilities button;
+            $(function() {
+                $("#sport").click(function() {
+                    //Delete all the content in these element & hidden the datatable;
+                    document.getElementById("NameOfLocation").innerHTML = "";
+                    document.getElementById("address").innerHTML = "";
+                    document.getElementById("photos").src = "";
+                    document.getElementById("descriptions").innerHTML = "";
+                    const aNode = document.getElementById('siteTable_length');
+                    if (aNode != null){
+                        $("#siteTable").DataTable().clear().draw();
+                        document.getElementById("siteTable").style.visibility = "hidden";
+                        document.getElementById("siteTable_length").style.display = "none";
+                        document.getElementById("siteTable_filter").style.display = "none";
+                        document.getElementById("siteTable_wrapper").style.display = "none";
+                    }
+                    //the box setting with user's position as centre;
+                    dis = 0.03;
+                    var minclat = clat - dis;
+                    var maxclat = clat + dis;
+                    var minclon = clon - dis;
+                    var maxclon = clon + dis;
+                    //ajax to action to get sport facilities's data;
+                    $.post('/wp-admin/admin-ajax.php', {
+                        "action": 'my_search',
+                        "clat1": minclat,
+                        "clat2": maxclat,
+                        "clon1": minclon,
+                        "clon2": maxclon
+                    }, function(response) {
+                        //return the json format.
+                        locations = response;
+                        addSportMarkerInfo();
+                    });
+                    //icon of sport facilities;
+                    image = {
+                        url: 'https://img.icons8.com/color/42/000000/sport.png',
+                        // This marker is 20 pixels wide by 32 pixels high.
+                        size: new google.maps.Size(100, 50),
+                        // The origin for this image is (0, 0).
+                        origin: new google.maps.Point(0, 0),
+                        // The anchor for this image is the base of the flagpole at (0, 32).
+                        anchor: new google.maps.Point(0, 32)
+                    };
+                    //initial the map;
+                    map = new google.maps.Map(mapDiv, {
+                        center: new google.maps.LatLng(clat, clon),
+                        restriction: {
+                            latLngBounds: Australia_BOUNDS,
+                            strictBounds: false,
+                        },
+                        zoom: 15,
+                        panControl: false,
+                        zoomControl: false,
+                        scaleControl: true,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
+                    //add current location;
+                    var marker = new google.maps.Marker({
+                        position: {
+                            lat: clat,
+                            lng: clon
+                        },
+                        map: map,
+                        title: 'Your current location',
+                        icon: myImage
+                    });
+                    marker.addListener('click', function() {
+                      map.setZoom(8);
+                      map.setCenter(marker.getPosition());
+                    });
+                })
+            })
+            //link html element;
+            var mapDiv = document.getElementById('googft-mapCanvas');
+            //initial map in mapDiv;
+            map = new google.maps.Map(mapDiv, {
+                center: new google.maps.LatLng(clat, clon),
+                restriction: {
+                    latLngBounds: Australia_BOUNDS,
+                    strictBounds: false,
+                },
+                zoom: 7,
+                panControl: false,
+                zoomControl: false,
+                scaleControl: true,
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+            //add fusiontable layer
+            layer = new google.maps.FusionTablesLayer({
+                map: map,
+                heatmap: {
+                    enabled: false
+                },
+                query: {
+                    select: "col12",
+                    from: "11RmOfqswC5YS9lJ_HcMA1Vi3f0TPGy48skybaC65",
+                    where: ""
+                },
+                options: {
+                    styleId: 2,
+                    templateId: 2
+                }
+            });
+            //the flag logo
+            myImage = {
+                url: 'https://img.icons8.com/dusk/44/000000/region-code.png',
+                // This marker is 20 pixels wide by 32 pixels high.
+                size: new google.maps.Size(100, 50),
+                // The origin for this image is (0, 0).
+                origin: new google.maps.Point(0, 0),
+                // The anchor for this image is the base of the flagpole at (0, 32).
+                anchor: new google.maps.Point(0, 32)
+            };
+            //add current location icon;
+            var marker = new google.maps.Marker({
+                position: {
+                    lat: clat,
+                    lng: clon
+                },
+                map: map,
+                title: 'Your current location',
+                icon: myImage
+            });
+        }
+        //show detials for each mark on right area of map;
+        function showDetials() {
+            document.getElementById("NameOfLocation").innerHTML = "";
+            document.getElementById("address").innerHTML = "";
+            document.getElementById("photos").src = "";
+            document.getElementById("descriptions").innerHTML = "";
+            localName = document.getElementById("cName").innerHTML;
+            localName = localName + " Victoria Australia"
+            console.log(localName)
+            localComment = document.getElementById("cComment").innerHTML;
+            var request = {
+                query: localName,
+                fields: ['name', 'photos', 'formatted_address', 'place_id'],
+            };
+            //get the google places api service;
+            var service = new google.maps.places.PlacesService(map);
+            service.findPlaceFromQuery(request, function(results, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    if (results.length != 0) {
+                        placeID = results[0].place_id;
+
+                        var requestDetail = {
+                            placeId: placeID,
+                            fields: ['formatted_address', 'permanently_closed', 'photo', 'icon']
+                        };
+
+                        var detialService = new google.maps.places.PlacesService(map);
+                        detialService.getDetails(requestDetail, callback);
+                        
+                        function callback(place, status) {
+                            if (status == google.maps.places.PlacesServiceStatus.OK) {
+                                document.getElementById("NameOfLocation").innerHTML = localName;
+                                document.getElementById("address").innerHTML = place.formatted_address;
+                                document.getElementById("descriptions").innerHTML = localComment;
+                                if (typeof(place.photos) != "undefined") {
+                                    document.getElementById("photos").src = place.photos[0].getUrl({
+                                        maxWidth: 350,
+                                        maxHeight: 350
+                                    })
+                                }
+                            }
+                        };
+                    } else {
+                        document.getElementById("NameOfLocation").innerHTML = localName;
+                        document.getElementById("descriptions").innerHTML = localComment;
+                    }
+                } else {
+                    document.getElementById("NameOfLocation").innerHTML = localName;
+                    document.getElementById("descriptions").innerHTML = localComment;
+                }
+            });
+
+
+        }
+        // add the information on the sport facilities information window;
+        function addSportMarkerInfo() {
+            var word1 = "Facility Type: ";
+            var word2 = "Facility Conditions: ";
+            for (var i = 0; i < locations.length; i++) {
+                var contentString = '<div id="content">' + '<h4 id="cName">' + locations[i]["facilityName"] + '</h4></br><p id="cComment">' + word1 + locations[i].sportsPlayed + '</p></br><input id="clickMe" type="button" value="Learn more" onclick="showDetials()"/></div>';
+
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(locations[i].latitude),
+                        lng: parseFloat(locations[i].longitude)
+                    },
+                    map: map,
+                    icon: image
+
+                });
+                const infowindow = new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 200
+                });
+                marker.addListener('click', function() {
+                    closeOtherInfo();
+                    infowindow.open(marker.get('map'), marker);
+                    InforObj[0] = infowindow;
+                });
+            }
+            locations = [];
+
+        }
+
+        // add the information on the recreation site information window;
+        function addMarkerInfo() {
+
+            for (var i = 0; i < locations.length; i++) {
+                var contentString = '<div id="content">' + '<h4 id="cName">' + locations[i]["site_name"] + '</h4></br><p id="cComment">' + locations[i].access_dsc + '</p></br><input id="clickMe" type="button" value="Learn more" onclick="showDetials()"/></div>';
+
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(locations[i].latitude),
+                        lng: parseFloat(locations[i].longitude)
+                    },
+                    map: map,
+                    icon: image
+
+                });
+                const infowindow = new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 200
+                });
+                marker.addListener('click', function() {
+                    closeOtherInfo();
+                    infowindow.open(marker.get('map'), marker);
+                    InforObj[0] = infowindow;
+                });
+            }
+            locations = [];
+        }
+
+        function closeOtherInfo() {
+            if (InforObj.length > 0) {
+                InforObj[0].set("marker", null);
+                InforObj[0].close();
+                InforObj.length = 0;
+            }
+        }
+
+        google.maps.event.addDomListener(window, 'load', getLocation);
+
+    </script>
+</head>
+
+<body>
+    <div class = "row">
+        <div class = "col-md-12 col-sm-12">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <button id="recreation" type="button" class="btn btn-secondary">Recreation Site</button>
+                <button id="sport" type="button" class="btn btn-secondary">Sport Facilities</button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class = "col-md-7 col-sm-12 col-lg-7">
+            <div id="googft-mapCanvas">
+                <div class="d-flex justify-content-center">
+                    <div id="columnV">
+                        <button id="loadingButton" class="btn btn-primary" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="sr-only"></span>
+                            Loading...
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="contentDetials" class="col-md-4 col-sm-12  col-lg-4">
+                <h4 id="NameOfLocation"></h4>
+                <p id="address"></p>
+                <img id="photos">
+                <p id="descriptions"></p>
+        </div>
+    </div>
+    <div class ="row" style="margin-top:20px">
+         <div class="col-md-12 col-sm-12 col-lg-12">
+            <table id="siteTable" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <td>Site Name</td>
+                        <td>Descriptions</td>
+                        <td></td>
+                        <td id="latCell" style="display:none"></td>
+                        <td id="lngCell" style="display:none"></td>
+                    </tr>
+                </thead>
+                <tbody id="siteBody"></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

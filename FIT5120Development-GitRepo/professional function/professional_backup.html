@@ -1,0 +1,186 @@
+<html>
+
+<head>
+    <meta name="viewport" />
+    <style type="text/css">
+        #googft-mapCanvas {
+            height: 500px;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            float: left;
+        }
+
+        #contentDetials {
+            width: 300px;
+            height: 500px;
+            float: left;
+            margin-left: 20px;
+        }
+
+        #photos {
+            height: 200px;
+        }
+
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3&amp;libraries=visualization&amp;key=AIzaSyB4vhZzjKFielQWyeNeTOld0szKsSwsQU0&libraries=places&amp"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+
+    <script type="text/javascript">
+        var map
+        var dis;
+        var locations = [];
+        var InforObj = [];
+        var localName = "";
+        var localComment = "";
+        var placeID = "";
+        var myImage;
+        var image;
+        var Australia_BOUNDS = {
+            north: -33.83,
+            south: -39.48,
+            west: 140.87,
+            east: 150.44
+        };
+
+
+        function getLocation() {
+            navigator.geolocation.getCurrentPosition(initialize);
+        }
+
+        function initialize(position) {
+            var clat = parseFloat(position.coords.latitude);
+            var clon = parseFloat(position.coords.longitude);
+
+            $.post('/wp-admin/admin-ajax.php', {
+                "action": 'my_assistSearch'
+
+            }, function(response) {
+                //return the json format.
+                locations = response;
+                addMarkerInfo();
+            });
+            image = {
+                url: 'https://img.icons8.com/nolan/52/000000/doctor-male.png',
+                // This marker is 20 pixels wide by 32 pixels high.
+                size: new google.maps.Size(100, 50),
+                // The origin for this image is (0, 0).
+                origin: new google.maps.Point(0, 0),
+                // The anchor for this image is the base of the flagpole at (0, 32).
+                anchor: new google.maps.Point(0, 32)
+            };
+
+            var marker = new google.maps.Marker({
+                position: {
+                    lat: clat,
+                    lng: clon
+                },
+                map: map,
+                title: 'Your current location',
+                icon: myImage
+            });
+            marker.addListener('click', function() {
+                map.setZoom(8);
+                map.setCenter(marker.getPosition());
+            });
+
+
+            var mapDiv = document.getElementById('googft-mapCanvas');
+            map = new google.maps.Map(mapDiv, {
+                center: new google.maps.LatLng(clat, clon),
+                restriction: {
+                    latLngBounds: Australia_BOUNDS,
+                    strictBounds: false,
+                },
+                zoom: 12,
+                panControl: false,
+                zoomControl: false,
+                scaleControl: true,
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+
+            //the flag logo
+            myImage = {
+                url: 'https://img.icons8.com/dusk/44/000000/region-code.png',
+                // This marker is 20 pixels wide by 32 pixels high.
+                size: new google.maps.Size(100, 50),
+                // The origin for this image is (0, 0).
+                origin: new google.maps.Point(0, 0),
+                // The anchor for this image is the base of the flagpole at (0, 32).
+                anchor: new google.maps.Point(0, 32)
+            };
+
+            var marker = new google.maps.Marker({
+                position: {
+                    lat: clat,
+                    lng: clon
+                },
+                map: map,
+                title: 'Your current location',
+                icon: myImage
+            });
+        }
+
+
+        function addMarkerInfo() {
+
+            for (var i = 0; i < locations.length; i++) {
+                var contentString = '<div id="content">' + '<h4 id="aName">' + locations[i]["dName"] + '</h4></br><h5 id ="addr">' + locations[i]["address"] + '</h5></br><p id="cComment">' + locations[i].description + '</p></br><p>Phone Number: ' + locations[i].phoneNumber + '</p></br><p>Website: <a href="' + locations[i].website + '">' + locations[i].website + '</a></p></br><p>Open Time: ' + locations[i].open_time + '</p></br><p>End Time: ' + locations[i].close_time + '</p></br><p>Closing Day: ' + locations[i].close_date + '</p></div>';
+
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(locations[i].latitude),
+                        lng: parseFloat(locations[i].longitude)
+                    },
+                    map: map,
+                    icon: image
+
+                });
+                const infowindow = new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 400
+                });
+                marker.addListener('click', function() {
+                    closeOtherInfo();
+                    infowindow.open(marker.get('map'), marker);
+                    InforObj[0] = infowindow;
+                });
+            }
+            locations = [];
+        }
+
+        function closeOtherInfo() {
+            if (InforObj.length > 0) {
+                InforObj[0].set("marker", null);
+                InforObj[0].close();
+                InforObj.length = 0;
+            }
+        }
+
+        google.maps.event.addDomListener(window, 'load', getLocation);
+
+    </script>
+</head>
+
+<body>
+    <div id="googft-mapCanvas" class="col-md-12 col-sm-12 col-lg-12">
+        <div class="d-flex justify-content-center">
+            <div id="columnV">
+                <button id="loadingButton" class="btn btn-primary" type="button" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only"></span>
+                    Loading...
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

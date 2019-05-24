@@ -1,0 +1,79 @@
+<! DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>jQuery DataTable Tutorial With Bootstrap</title>
+             <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    
+
+         <script type="text/javascript">
+            var data;
+            // get the data from food table;
+            window.onload = function(){
+                $.post('/wp-admin/admin-ajax.php', {
+                        "action": 'my_foodSearch',
+                    }, function(response) {
+                        //return the json format.
+                        data = response;
+                        console.log(data);
+                        
+                        var tbody = document.getElementById('tbMain');
+	  
+                        for(var i = 0;i < data.length; i++){ 
+                    		  var trow = getDataRow(data[i]); 
+                    	  	  tbody.appendChild(trow);
+                    		}
+                    	 $(document).ready(function(){
+                            $(".table").DataTable();
+                         });
+                    });
+            }
+            //load the content in datatable;
+            function getDataRow(h){
+                var row = document.createElement('tr');
+                var nameCell = document.createElement('td');
+                nameCell.innerHTML = h.food_name;
+                row.appendChild(nameCell);
+                var omegaCell = document.createElement('td');
+            	omegaCell.innerHTML = h.omega3_fatty_acids;
+            	row.appendChild(omegaCell);
+            	var aCell = document.createElement('td');
+            	aCell.innerHTML = h.vitaminA_retinol_equivalents;
+            	row.appendChild(aCell);
+            	var zincCell = document.createElement('td');
+            	zincCell.innerHTML = h.zinc_zn;
+            	row.appendChild(zincCell);
+            	var cCell = document.createElement('td');
+            	cCell.innerHTML = h.vitaminC;
+            	row.appendChild(cCell);
+            	return row;
+            }
+             
+         </script>
+    </head>
+    <body>
+        <div class="container" sytle = "margin-top: 20px">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <td>Food Name</td>
+                                <td>Omega-3 Fatty acids (mg)</td>
+                                <td>Vitamin A (µg)</td>
+                                <td>Zinc (mg)</td>
+                                <td>Vitamin C (mg)</td>
+                            </tr>
+                        </thead>
+                        <tbody id="tbMain"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
